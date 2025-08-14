@@ -1,0 +1,7 @@
+fastapi[standard]
+pydentic
+pydantic-settings
+python-dotenv
+jsonpatch
+uvicorn
+mysql-connector-python
