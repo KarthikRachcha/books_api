@@ -1,20 +1,40 @@
-name: Test GCP Auth
+name: Deploy Books API to Cloud Run
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  auth-test:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Authenticate with GCP
+      # Set up gcloud CLI
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: reliable-sol-469016-t0
+          export_default_credentials: true
+
+      # Debug: Verify authentication
+      - name: Verify gcloud authentication
+        run: gcloud auth list
+
+      # Submit build to Cloud Build
+      - name: Build and push Docker image
         run: |
-          printf '%s' "${{ secrets.GCP_SA_KEY }}" > key.json
-          gcloud auth activate-service-account --key-file=key.json
-          gcloud config set project reliable-sol-469016-t0
+          gcloud builds submit --tag gcr.io/reliable-sol-469016-t0/books-api:latest
 
-      - name: Check GCP project
-        run: gcloud config list
+      # Deploy to Cloud Run (optional)
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy books-api \
+            --image gcr.io/reliable-sol-469016-t0/books-api:latest \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated
