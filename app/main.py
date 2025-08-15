@@ -1,8 +1,9 @@
 from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI
 from app.routers import books_routers
 
-load_dotenv()
+
 app=FastAPI(title= "Books API")
 
 app.include_router(books_routers.router)

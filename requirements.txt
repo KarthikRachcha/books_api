@@ -5,3 +5,7 @@ python-dotenv
 jsonpatch
 uvicorn
 mysql-connector-python
+uvicorn
+redis
+requests
+pytest
