@@ -15,9 +15,10 @@ jobs:
       # Step 2: Authenticate with GCP (add your snippet here)
       - name: Authenticate with GCP
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > key.json
+          printf '%s' "${{ secrets.GCP_SA_KEY }}" > key.json
           gcloud auth activate-service-account --key-file=key.json
           gcloud config set project reliable-sol-469016-t0
+
 
       # Step 3: Build and push Docker image
       - name: Build and push Docker image
