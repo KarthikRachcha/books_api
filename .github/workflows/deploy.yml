@@ -13,7 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Set up gcloud CLI
+      # Install jq for debugging JSON (optional)
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      # Set up Google Cloud SDK
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -21,16 +25,20 @@ jobs:
           project_id: reliable-sol-469016-t0
           export_default_credentials: true
 
-      # Debug: Verify authentication
-      - name: Verify gcloud authentication
-        run: gcloud auth list
+      # Debug: Verify authentication and configuration
+      - name: Debug gcloud configuration
+        run: |
+          gcloud version
+          gcloud auth list
+          gcloud config get-value project
+          echo "GCP_SA_KEY is set: ${GCP_SA_KEY:+set}"
 
-      # Submit build to Cloud Build
+      # Build and push Docker image to Google Container Registry
       - name: Build and push Docker image
         run: |
           gcloud builds submit --tag gcr.io/reliable-sol-469016-t0/books-api:latest
 
-      # Deploy to Cloud Run (optional)
+      # Deploy to Cloud Run (optional, adjust as needed)
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy books-api \
