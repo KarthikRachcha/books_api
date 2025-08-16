@@ -17,37 +17,51 @@ class BooksService:
 
     @staticmethod
     def get_all_books():
-        cached = redis_client.get("all_books")
-        if cached:
-            return [Book(**b) for b in json.loads(cached)]
+        try:
+            cached = redis_client.get("all_books")
+            if cached:
+                return [Book(**b) for b in json.loads(cached)]
 
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM books")
-        rows = cursor.fetchall()
-        cursor.close()
-        conn.close()
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM books")
+            rows = cursor.fetchall()
+            cursor.close()
+            conn.close()
 
-        redis_client.set("all_books", json.dumps(rows), ex=CACHE_EXPIRY)
-        return [Book(**row) for row in rows]
+            redis_client.set("all_books", json.dumps(rows), ex=CACHE_EXPIRY)
+            return [Book(**row) for row in rows]
+        except mysql.connector.Error as e:
+            print(f"Database error: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return None
 
     @staticmethod
     def get_book_by_id(book_id: int):
-        cached = redis_client.get(f"book_{book_id}")
-        if cached:
-            return Book(**json.loads(cached))
+        try:
+            cached = redis_client.get(f"book_{book_id}")
+            if cached:
+                return Book(**json.loads(cached))
 
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-        if row:
-            redis_client.set(f"book_{book_id}", json.dumps(row), ex=CACHE_EXPIRY)
-            return Book(**row)
-        return None
+            if row:
+                redis_client.set(f"book_{book_id}", json.dumps(row), ex=CACHE_EXPIRY)
+                return Book(**row)
+            return None
+        except mysql.connector.Error as e:
+            print(f"Database error: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return None
 
     @staticmethod
     def add_book(book: Book):
